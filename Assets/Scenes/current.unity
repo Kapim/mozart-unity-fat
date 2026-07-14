@@ -10253,7 +10253,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SelectRectangle
+      value: CreatePortalBox
       objectReference: {fileID: 0}
     - target: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
