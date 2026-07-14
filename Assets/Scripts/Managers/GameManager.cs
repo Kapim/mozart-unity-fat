@@ -837,6 +837,23 @@ public class GameManager : Singleton<GameManager>
     }
 
     bool ObjectTypeNameExists(string objectTypeName) {
+        // Check the live SDK collection, not the local snapshot: ObjectTypeManagerList is
+        // only filled once at connect time, so object types created at runtime (e.g. every
+        // virtual collision box added for a portal) would otherwise be invisible here. That
+        // made GetFreeObjectTypeName hand out "CollisionBox" repeatedly, and the server
+        // rejected the second portal as a duplicate object type. The SDK keeps ObjectTypes
+        // up to date, so query it directly.
+        if (CommunicationManager?.Arcor2Session?.ObjectTypes != null)
+        {
+            foreach (var objectType in CommunicationManager.Arcor2Session.ObjectTypes)
+            {
+                if (objectType.Id == objectTypeName)
+                {
+                    return true;
+                }
+            }
+        }
+
         return ObjectTypeManagerList.ContainsKey(objectTypeName);
     }
 
