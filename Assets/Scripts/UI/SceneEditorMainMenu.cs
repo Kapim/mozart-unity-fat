@@ -13,6 +13,14 @@ public class SceneEditorMainMenu : MonoBehaviour
     public string DefaultMeshIdForBinding;
     public TMP_Text CloseSceneSubLabel, SaveSceneSubLabel, EditModeSubLabel, MatEditModeSubLabel, CutMeshSubLabel, MeshAlignmentSubLabel, OriginAnchorSubLabel;
 
+    [Header("Experiment")]
+    [Tooltip("When OFF (experiment default), exiting collision edit mode does NOT " +
+             "send an OBB-cut request to the mesh service - the full scene mesh is " +
+             "kept and portals just render against it. Mesh download and mesh " +
+             "transform saving (rotation, etc.) are unaffected either way. Turn ON " +
+             "only for the setup workflow that actually carves the mesh by portal boxes.")]
+    [SerializeField] private bool rebuildMeshOnPortalChange = false;
+
     private bool _isCollisionMeshRebuildInProgress;
     private Toggle _collisionEditToggle;
 
@@ -494,7 +502,10 @@ public class SceneEditorMainMenu : MonoBehaviour
     {
         RefreshEditModeLabel();
 
-        if (!EditModeManager.Instance.IsEditMode)
+        // Experiment: keep the whole scene mesh. Changing/moving/deleting portal
+        // boxes must NOT trigger an OBB-cut request. Guarded so the mesh-carving
+        // setup workflow can still be re-enabled via the inspector flag.
+        if (!EditModeManager.Instance.IsEditMode && rebuildMeshOnPortalChange)
         {
             RebuildBackgroundMeshFromAllCollisionBoxesAsync();
         }
