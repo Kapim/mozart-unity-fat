@@ -13,6 +13,23 @@ The application runs on **Meta Quest 3** and uses a **Diminish Reality** approac
 - Feasibility analysis in a real production context
 - Mixed reality visualization on Meta Quest 3 using the Diminish Reality concept
 
+## Editing and deleting objects (in-headset)
+
+Runtime objects (Portal Windows / collision boxes and MATs) can be moved, scaled and deleted while
+an edit mode is active:
+
+- **Select** — aim the controller reticle at an object and pull the trigger. An orange wireframe
+  marks the selection.
+- **Move / scale** — grip-grab to move, or hold the trigger for a distance grab; portal boxes also
+  scale per-axis with the thumbsticks.
+- **Delete** — a small widget appears next to the selected object: click 🗑 **Delete**, then confirm
+  with ✓ (or cancel with ✗). This removes the action object on the ARCOR2 server too.
+
+Deletion works for both portal collision boxes and MATs. The button pictograms live in
+`Assets/Resources/DeleteWidgetIcons/`. See
+[Docs/edit-mode-and-deletion.md](Docs/edit-mode-and-deletion.md) for the full flow and the
+implementation gotchas (widget binding, the Default-layer requirement, reticle interaction).
+
 ## Object-Shaped Portals
 
 Object-shaped portals mask a portal in the shape of a real object's geometry (instead of a
