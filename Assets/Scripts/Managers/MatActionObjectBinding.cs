@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Arcor2.ClientSdk.ClientServices.Managers;
 using UnityEngine;
 
-public class MatActionObjectBinding : MonoBehaviour
+public class MatActionObjectBinding : MonoBehaviour, IObjectServerBinding
 {
+    public bool SupportsScale => false;
+
     public ActionObjectManager ActionObjectManager { get; private set; }
     public string ActionObjectId { get; private set; }
 

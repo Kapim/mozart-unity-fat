@@ -307,9 +307,21 @@ public class GameManager : Singleton<GameManager>
                         binding = collisionBox.AddComponent<CollisionObjectBinding>();
                     }
                     binding.Initialize(actionObject, Origin);
+                    // Blue overlay marks every editable box in edit mode; the wireframe marks the
+                    // one that is currently selected.
                     if (collisionBox.GetComponent<CollisionBoxEditOverlay>() == null)
                     {
                         collisionBox.AddComponent<CollisionBoxEditOverlay>();
+                    }
+                    if (collisionBox.GetComponent<SelectionWireframe>() == null)
+                    {
+                        collisionBox.AddComponent<SelectionWireframe>();
+                    }
+                    // Give the box the same reticle target MATs/walls have so the "cursor" highlights
+                    // and selects it, instead of only the hidden controller ray.
+                    if (collisionBox.GetComponent<ReticleSelectable>() == null)
+                    {
+                        collisionBox.AddComponent<ReticleSelectable>();
                     }
                     EditModeManager.Instance?.RegisterEditable(collisionBox);
                 }
@@ -735,7 +747,9 @@ public class GameManager : Singleton<GameManager>
             EnsureAlwaysVisibleContentRenderer(box);
         }
 
-        box.AddComponent<PortalPlacementBox>();
+        // Unified manipulation: same grip-grab + per-axis scale used for editing portals and MATs.
+        var manipulator = box.AddComponent<ObjectManipulator>();
+        manipulator.AllowScale = true;
         _portalPlacementBox = box;
 
         if (SelectRectangleSubLabel != null)
