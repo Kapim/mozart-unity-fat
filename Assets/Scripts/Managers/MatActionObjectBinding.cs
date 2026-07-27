@@ -67,6 +67,25 @@ public class MatActionObjectBinding : MonoBehaviour, IObjectServerBinding
         }
     }
 
+    public async Task<bool> RemoveAsync(bool force = true)
+    {
+        if (ActionObjectManager == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            await ActionObjectManager.RemoveAsync(force);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to remove MAT action object '{ActionObjectId}': {ex}");
+            return false;
+        }
+    }
+
     private void CaptureSavedState(Transform origin)
     {
         if (origin == null)

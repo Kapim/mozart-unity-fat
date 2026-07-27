@@ -333,9 +333,14 @@ public class EditModeManager : Singleton<EditModeManager>
             return;
         }
 
+        // Top-level, NOT parented under this manager: its host object may carry a non-identity
+        // scale, which the widget (positioned in world space) must not inherit.
         var widgetObject = new GameObject("CollisionBoxDeleteWidget");
-        widgetObject.transform.SetParent(transform, false);
-        widgetObject.AddComponent<CollisionBoxDeleteWidget>();
+        // Bind the widget to THIS manager explicitly. It is created during our own Awake, so it
+        // cannot rely on EditModeManager.Instance yet (the Singleton resolves lazily and would
+        // otherwise leave the widget unsubscribed, so its delete UI never shows).
+        var widget = widgetObject.AddComponent<CollisionBoxDeleteWidget>();
+        widget.Initialize(this);
     }
 
     private Transform FindTrackingSpaceTransform()
