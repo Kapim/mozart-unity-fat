@@ -56,9 +56,9 @@ public class GameManager : Singleton<GameManager>
     public Vector3 PortalPlacementDefaultSize = new Vector3(0.5f, 0.5f, 0.1f);
     [Tooltip("Distance in front of the camera where the portal box is first spawned.")]
     public float PortalPlacementSpawnDistance = 1.0f;
-    private GameObject _portalPlacementBox;
-    private Material _portalPreviewMaterial;
-    public bool IsPlacingPortal => _portalPlacementBox != null;
+    // Type name of a portal we just asked the server to add and want to auto-select once it is
+    // echoed back and spawned (see CreatePortalBox / SpawnActionObject).
+    private string _pendingPortalSelectType;
 
     private MeshDownloadManager meshDownloadManager;
     private Dictionary<string, GameObject> importedMeshes = new Dictionary<string, GameObject>();
@@ -324,9 +324,23 @@ public class GameManager : Singleton<GameManager>
                         collisionBox.AddComponent<ReticleSelectable>();
                     }
                     EditModeManager.Instance?.RegisterEditable(collisionBox);
+
+                    // If this is the portal we just added via the "Add Portal" button, enter edit
+                    // mode and auto-select it so the user immediately manipulates the finished portal.
+                    if (!string.IsNullOrEmpty(_pendingPortalSelectType) &&
+                        actionObject.Data.Meta.Type == _pendingPortalSelectType)
+                    {
+                        _pendingPortalSelectType = null;
+                        var editModeManager = EditModeManager.Instance;
+                        if (editModeManager != null)
+                        {
+                            editModeManager.SetEditMode(true);
+                            editModeManager.SetSelectedObject(collisionBox);
+                        }
+                    }
                 }
 
-               
+
                 break;
         }
 
@@ -648,8 +662,10 @@ public class GameManager : Singleton<GameManager>
     /// Sends a box-shaped virtual collision object (the portal geometry) to the ARCOR2
     /// scene. Transform values are expected in Origin-local space. The server echoes the
     /// object back, which is then spawned as the real grabbable collision/portal box.
+    /// Returns the object type name of the added box (so the caller can identify it once it is
+    /// spawned), or null if the request failed.
     /// </summary>
-    private async Task AddVirtualCollisionBoxAsync(Vector3 localScale, Vector3 localPosition, Quaternion localRotation)
+    private async Task<string> AddVirtualCollisionBoxAsync(Vector3 localScale, Vector3 localPosition, Quaternion localRotation)
     {
         ObjectModel objectModel = new ObjectModel();
         ObjectModel.TypeEnum type = ObjectModel.TypeEnum.Box;
@@ -669,129 +685,54 @@ public class GameManager : Singleton<GameManager>
             {
                 Debug.LogError(msg);
             }
+            return null;
         }
+
+        return objectTypeMeta.Type;
     }
 
     /// <summary>
-    /// Entry point for the "Add Portal" button. First press spawns a semi-transparent
-    /// bounding box in front of the user that can be freely moved/rotated/scaled (also in
-    /// mid-air, unlike the old floor-point flow); the next press commits it as a portal.
+    /// Entry point for the "Add Portal" button. Immediately adds a portal at a default pose in
+    /// front of the user, then enters edit mode and auto-selects the freshly added portal, so the
+    /// user starts manipulating a finished portal right away (no separate placement step).
     /// </summary>
-    public void CreatePortalBox()
+    public async void CreatePortalBox()
     {
-        if (_portalPlacementBox == null)
-        {
-            BeginPortalPlacement();
-        }
-        else
-        {
-            ConfirmPortalPlacement();
-        }
-    }
+        // Default pose: in front of the headset, facing the user (yaw only), at the default size.
+        Vector3 localPosition = Vector3.zero;
+        Quaternion localRotation = Quaternion.identity;
 
-    public void BeginPortalPlacement()
-    {
-        if (_portalPlacementBox != null)
-        {
-            return;
-        }
-
-        GameObject box = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        box.name = "PortalPlacementPreview";
-        if (Origin != null)
-        {
-            box.transform.SetParent(Origin, false);
-        }
-
-        // Spawn in front of the headset, facing the user (yaw only), at a default size.
         Transform head = GetHeadTransform();
         if (head != null)
         {
             Vector3 worldPos = head.position + head.forward * PortalPlacementSpawnDistance;
-            box.transform.position = worldPos;
 
             Vector3 toHead = head.position - worldPos;
             toHead.y = 0f;
-            box.transform.rotation = toHead.sqrMagnitude < 1e-4f
+            Quaternion worldRot = toHead.sqrMagnitude < 1e-4f
                 ? Quaternion.identity
                 : Quaternion.LookRotation(toHead.normalized, Vector3.up);
-        }
-        box.transform.localScale = PortalPlacementDefaultSize;
 
-        MeshRenderer renderer = box.GetComponent<MeshRenderer>();
-
-        // Preferred: opaque edge-highlighted material (Custom/PortalBoxEdges). It shares the
-        // proven always-visible render state (Blend One Zero, ZTest Always, Overlay queue), so
-        // it renders everywhere over passthrough while making the box edges stand out.
-        Material edgeMaterial = Resources.Load<Material>("PortalBoxEdges");
-        if (edgeMaterial != null)
-        {
-            if (renderer != null)
+            if (Origin != null)
             {
-                renderer.sharedMaterial = edgeMaterial;
-                // Match what AlwaysVisibleContentRenderer does (the confirmed-visible path): draw
-                // after the passthrough composite. Without this the box only shows through portals.
-                edgeMaterial.renderQueue = 5000;
-                renderer.sortingOrder = 1000;
+                localPosition = Origin.InverseTransformPoint(worldPos);
+                localRotation = Quaternion.Inverse(Origin.rotation) * worldRot;
+            }
+            else
+            {
+                localPosition = worldPos;
+                localRotation = worldRot;
             }
         }
-        else
-        {
-            // Fallback: flat opaque colour driven through the same AlwaysVisibleContentRenderer
-            // overlay the MAT objects use.
-            if (renderer != null)
-            {
-                renderer.sharedMaterial = GetPortalPreviewMaterial();
-            }
 
-            EnsureAlwaysVisibleContentRenderer(box);
-        }
+        // Remember the type of the portal we are adding so SpawnActionObject can select it once the
+        // server echoes it back and it is spawned.
+        _pendingPortalSelectType = await AddVirtualCollisionBoxAsync(
+            PortalPlacementDefaultSize, localPosition, localRotation);
 
-        // Unified manipulation: same grip-grab + per-axis scale used for editing portals and MATs.
-        var manipulator = box.AddComponent<ObjectManipulator>();
-        manipulator.AllowScale = true;
-        _portalPlacementBox = box;
-
-        if (SelectRectangleSubLabel != null)
-        {
-            SelectRectangleSubLabel.text = "Move / rotate / scale, press to place";
-        }
-    }
-
-    public async void ConfirmPortalPlacement()
-    {
-        if (_portalPlacementBox == null)
-        {
-            return;
-        }
-
-        GameObject box = _portalPlacementBox;
-        _portalPlacementBox = null;
-
-        if (SelectRectangleSubLabel != null)
-        {
-            SelectRectangleSubLabel.text = "";
-        }
-
-        Transform t = box.transform;
-        await AddVirtualCollisionBoxAsync(t.localScale, t.localPosition, t.localRotation);
-        GameObject.Destroy(box);
-    }
-
-    public void CancelPortalPlacement()
-    {
-        if (_portalPlacementBox == null)
-        {
-            return;
-        }
-
-        GameObject.Destroy(_portalPlacementBox);
-        _portalPlacementBox = null;
-
-        if (SelectRectangleSubLabel != null)
-        {
-            SelectRectangleSubLabel.text = "";
-        }
+        // Make sure edit mode is on so the newly spawned portal is registered as editable and its
+        // manipulation/overlay behaves like any other edited portal.
+        EditModeManager.Instance?.SetEditMode(true);
     }
 
     /// <summary>
@@ -807,28 +748,6 @@ public class GameManager : Singleton<GameManager>
         }
 
         return Camera.main != null ? Camera.main.transform : null;
-    }
-
-    /// <summary>
-    /// Opaque base colour for the portal placement preview. This is only the source colour:
-    /// BeginPortalPlacement adds an AlwaysVisibleContentRenderer, which swaps this for the
-    /// Custom/AlwaysVisibleContentUnlit overlay (opaque, ZTest Always, Overlay queue) so the box
-    /// is visible everywhere over passthrough - the same, proven path the MAT objects use.
-    /// </summary>
-    private Material GetPortalPreviewMaterial()
-    {
-        if (_portalPreviewMaterial != null)
-        {
-            return _portalPreviewMaterial;
-        }
-
-        Color color = new Color(0.15f, 0.8f, 1f, 1f);
-        Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
-        var material = new Material(shader);
-        if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-        if (material.HasProperty("_Color")) material.SetColor("_Color", color);
-        _portalPreviewMaterial = material;
-        return _portalPreviewMaterial;
     }
 
     public string GetFreeObjectTypeName(string objectTypeName)

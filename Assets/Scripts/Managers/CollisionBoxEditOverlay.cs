@@ -10,7 +10,13 @@ using UnityEngine.Rendering.Universal;
 /// </summary>
 public class CollisionBoxEditOverlay : MonoBehaviour
 {
-    [SerializeField] private Color normalColor = new Color(0.15f, 0.8f, 1f, 0.18f);
+    /// <summary>
+    /// The translucent blue used for the edit overlay. Shared so other flows (e.g. the
+    /// portal placement preview) can match the exact look of an editable/moving portal.
+    /// </summary>
+    public static readonly Color EditOverlayColor = new Color(0.15f, 0.8f, 1f, 0.18f);
+
+    [SerializeField] private Color normalColor = EditOverlayColor;
 
     private GameObject _overlayObject;
     private Material _overlayMaterial;
@@ -112,7 +118,11 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         }
     }
 
-    private static Material CreateOverlayMaterial()
+    /// <summary>
+    /// Builds the translucent material used for the edit overlay. Public so other flows can reuse
+    /// the exact same render state (e.g. the portal placement preview). Caller owns the instance.
+    /// </summary>
+    public static Material CreateOverlayMaterial()
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
         if (shader == null)
