@@ -218,6 +218,19 @@ public class EditModeManager : Singleton<EditModeManager>
         }
 
         editable.SetRestrictManipulationToEditMode(true);
+
+        // Portals (collision boxes) are moved with the unified ObjectManipulator (grip grab), not the
+        // Meta ISDK grab rig - exactly like MATs. Their only auto-discovered "Interactable" is the
+        // reticle ray target added by ReticleSelectable, whose enabled state must be owned solely by
+        // ReticleSelectable (on only in portal edit mode). Without this, EditableObject re-enables it
+        // whenever ANY edit mode is active, so the reticle would snap onto portals during object
+        // editing and block picking the object inside/behind them. MATs neuter this the same way via
+        // ActionObject.DisableMetaGrabBehaviours.
+        if (target.GetComponent<CollisionObjectBinding>() != null)
+        {
+            editable.DisableManipulationManagement();
+        }
+
         editable.ApplyEditMode(IsAnyEditMode);
         return editable;
     }

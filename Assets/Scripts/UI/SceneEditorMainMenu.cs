@@ -448,9 +448,9 @@ public class SceneEditorMainMenu : MonoBehaviour
         bool collisionEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsEditMode;
         bool matEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsMatEditMode;
         string collisionStatus = _isCollisionMeshRebuildInProgress
-            ? "Collision edit: rebuilding..."
-            : $"Collision edit: {(collisionEditEnabled ? "ON" : "OFF")}";
-        string matStatus = $"MAT edit: {(matEditEnabled ? "ON" : "OFF")}";
+            ? "Portal editing: rebuilding..."
+            : $"Portal editing: {(collisionEditEnabled ? "ON" : "OFF")}";
+        string matStatus = $"Object editing: {(matEditEnabled ? "ON" : "OFF")}";
 
         if (MatEditModeSubLabel != null)
         {
