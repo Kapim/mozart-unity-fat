@@ -4,10 +4,13 @@ Seznam věcí k dořešení před spuštěním experimentu. Průběžně se dopl
 
 ## Otevřené
 
-- [ ] **Doladit vzhled MAT.** Ideálně použít CAD model MATu z projektu místo
-  současné reprezentace.
+_(zatím nic — doplní se později)_
 
 ## Hotové
+
+- [x] **Doladit vzhled MAT.** Přidány vylepšené MAT prefaby a model dlaždice
+  (`Assets/Prefabs/GrabbableMatBetter.prefab`, `Assets/Prefabs/MatContentBetter.prefab`,
+  `Assets/Models/tile.fbx`).
 
 - [x] **Mazání objektů a portálů nefunguje na brýlích.** Tlačítka se v nativním
   buildu vůbec nevykreslila (fungovala jen přes Quest Link). Příčina: mazací widget
@@ -17,5 +20,3 @@ Seznam věcí k dořešení před spuštěním experimentu. Průběžně se dopl
   je dostupný vždy, proto tam fungoval. Fix: URP/Unlit přidán do Always Included
   Shaders (`ProjectSettings/GraphicsSettings.asset`). Ověřeno na zařízení — tlačítka
   jsou vidět a fungují.
-
-_(zbytek se doplní později)_
