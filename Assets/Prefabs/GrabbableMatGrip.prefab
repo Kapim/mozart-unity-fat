@@ -124,10 +124,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6945671345231042150}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -166,6 +166,7 @@ MonoBehaviour:
   _rigidbody: {fileID: 8707456677212044406}
   _kinematicWhileSelected: 1
   _throwWhenUnselected: 1
+  _forceKinematicDisabled: 0
 --- !u!65 &5965499944622092016
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -199,7 +200,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be99ca1ce9e59914694d9747dd605477, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  matPrefab: {fileID: 8561677532758485037, guid: 507f81d3169152648a0f562775197a81, type: 3}
+  matPrefab: {fileID: 8561677532758485037, guid: 995bc64a7e4bdc942a4273ebe0113c39, type: 3}
   grid: {fileID: 7499462677105068036}
   boxCollider: {fileID: 5965499944622092016}
   movePattern: 0
