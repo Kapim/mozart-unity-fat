@@ -183,7 +183,14 @@ Shader "Custom/PortalContentUnlit"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
-                float occ = META_DEPTH_GET_OCCLUSION_VALUE_WORLDPOS(PortalFrontFaceWorld(input.posWorld), _EnvDepthBias);
+
+                // TEMP: dynamic occlusion disabled for performance (env-depth sampling
+                // was causing frame hitches on device). Forcing occ = 1.0 skips the
+                // per-fragment Meta Environment Depth sample + PortalFrontFaceWorld ray-box
+                // math, so portal content is always fully visible (no real-object occlusion).
+                // To re-enable, restore the line below.
+                //   float occ = META_DEPTH_GET_OCCLUSION_VALUE_WORLDPOS(PortalFrontFaceWorld(input.posWorld), _EnvDepthBias);
+                float occ = 1.0;
 
                 #if defined(HARD_OCCLUSION) || defined(SOFT_OCCLUSION)
                 if (_DebugMode > 0.5)
