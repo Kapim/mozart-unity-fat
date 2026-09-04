@@ -13,6 +13,15 @@ public class SceneEditorMainMenu : MonoBehaviour
     public string DefaultMeshIdForBinding;
     public TMP_Text CloseSceneSubLabel, SaveSceneSubLabel, EditModeSubLabel, MatEditModeSubLabel, CutMeshSubLabel, MeshAlignmentSubLabel, OriginAnchorSubLabel;
 
+    [Header("Active-state highlight")]
+    [Tooltip("Outline component on the 'Edit portals' button, enabled while portal edit mode is ON. " +
+             "Add an Outline component to the button's image and assign it here so the active tool " +
+             "is obvious at a glance (pilot users found the ON/OFF text alone hard to read).")]
+    [SerializeField] private Outline portalEditOutline;
+
+    [Tooltip("Outline component on the 'Edit objects' button, enabled while object edit mode is ON.")]
+    [SerializeField] private Outline objectEditOutline;
+
     [Header("Experiment")]
     [Tooltip("When OFF (experiment default), exiting collision edit mode does NOT " +
              "send an OBB-cut request to the mesh service - the full scene mesh is " +
@@ -440,17 +449,21 @@ public class SceneEditorMainMenu : MonoBehaviour
 
     private void RefreshEditModeLabel()
     {
+        bool collisionEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsEditMode;
+        bool matEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsMatEditMode;
+
+        // Apply the button outlines regardless of whether the text label is wired up.
+        ApplyEditModeHighlights(collisionEditEnabled, matEditEnabled);
+
         if (EditModeSubLabel == null)
         {
             return;
         }
 
-        bool collisionEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsEditMode;
-        bool matEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsMatEditMode;
         string collisionStatus = _isCollisionMeshRebuildInProgress
             ? "Portal editing: rebuilding..."
-            : $"Portal editing: {(collisionEditEnabled ? "ON" : "OFF")}";
-        string matStatus = $"Object editing: {(matEditEnabled ? "ON" : "OFF")}";
+            : $"{(collisionEditEnabled ? "ON" : "OFF")}";
+        string matStatus = $"{(matEditEnabled ? "ON" : "OFF")}";
 
         if (MatEditModeSubLabel != null)
         {
@@ -460,6 +473,22 @@ public class SceneEditorMainMenu : MonoBehaviour
         }
 
         EditModeSubLabel.text = $"{collisionStatus}\n{matStatus}";
+    }
+
+    // Turns the button outlines on/off so the active edit mode stands out. The outline is a
+    // redundant cue on top of the existing ON/OFF label, so the state is never conveyed by colour
+    // alone.
+    private void ApplyEditModeHighlights(bool portalEditOn, bool objectEditOn)
+    {
+        if (portalEditOutline != null)
+        {
+            portalEditOutline.enabled = portalEditOn;
+        }
+
+        if (objectEditOutline != null)
+        {
+            objectEditOutline.enabled = objectEditOn;
+        }
     }
 
     private void RefreshMeshAlignmentLabel()

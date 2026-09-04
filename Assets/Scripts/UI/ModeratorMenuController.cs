@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Reveals / hides the moderator ("service") menu on a hidden long-press of the
@@ -41,6 +42,14 @@ public class ModeratorMenuController : MonoBehaviour
 
     [Tooltip("Whether the moderator menu is visible on startup. Leave OFF for experiments.")]
     [SerializeField] private bool visibleOnStart = false;
+
+    [Header("Scroll locking")]
+    [Tooltip("Tool-menu ScrollRect(s) that should only scroll while the moderator menu is " +
+             "visible. During the experiment the participant sees only a few buttons that fit " +
+             "on screen, so scrolling is locked to stop accidental scrolls when poking a button " +
+             "with an unsteady hand. When the moderator menu is revealed there are enough " +
+             "buttons to warrant scrolling, so it is re-enabled.")]
+    [SerializeField] private ScrollRect[] lockScrollWhenHidden;
 
     private bool _visible;
 
@@ -103,6 +112,41 @@ public class ModeratorMenuController : MonoBehaviour
                 {
                     go.SetActive(_visible);
                 }
+            }
+        }
+
+        ApplyScrollLock();
+    }
+
+    /// <summary>
+    /// Locks vertical/horizontal scrolling on the tool menu while the moderator menu is hidden.
+    /// When locking, the content is snapped back to the top so every participant button stays in
+    /// view. Leaving the ScrollRect components enabled (rather than disabling them) keeps their
+    /// masking/layout intact.
+    /// </summary>
+    private void ApplyScrollLock()
+    {
+        if (lockScrollWhenHidden == null)
+        {
+            return;
+        }
+
+        foreach (var scroll in lockScrollWhenHidden)
+        {
+            if (scroll == null)
+            {
+                continue;
+            }
+
+            scroll.horizontal = _visible;
+            scroll.vertical = _visible;
+
+            if (!_visible)
+            {
+                // Snap back to the top and stop any residual momentum so the locked menu
+                // does not stay mid-scroll with buttons pushed out of view.
+                scroll.velocity = Vector2.zero;
+                scroll.verticalNormalizedPosition = 1f;
             }
         }
     }

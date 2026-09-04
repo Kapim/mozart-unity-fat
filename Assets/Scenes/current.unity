@@ -9609,6 +9609,8 @@ MonoBehaviour:
   CutMeshSubLabel: {fileID: 0}
   MeshAlignmentSubLabel: {fileID: 651871712}
   OriginAnchorSubLabel: {fileID: 332612969}
+  portalEditOutline: {fileID: 1224591537}
+  objectEditOutline: {fileID: 2131152603}
   rebuildMeshOnPortalChange: 0
 --- !u!114 &355818575
 MonoBehaviour:
@@ -10176,6 +10178,14 @@ PrefabInstance:
       propertyPath: m_text
       value: Add Portal
       objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
+      objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
       value: SelectRectangle
@@ -10212,6 +10222,10 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4771752389567740990, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 3825772016911383916, guid: 64f884351318b694f942625580e64a8b, type: 3}
     - target: {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
@@ -10305,7 +10319,8 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
@@ -16205,6 +16220,14 @@ PrefabInstance:
       propertyPath: m_text
       value: Edit portals
       objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
+      objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
       value: ToggleEditMode (1)
@@ -16241,6 +16264,18 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4217222142677417399, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4217222142677417399, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4771752389567740990, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -2907958739317821849, guid: 64f884351318b694f942625580e64a8b, type: 3}
     - target: {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
@@ -16334,9 +16369,13 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2746608227343325639, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1224591537}
   m_SourcePrefab: {fileID: 100100000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
 --- !u!4 &787327085 stripped
 Transform:
@@ -22593,6 +22632,26 @@ PositionConstraint:
   m_Sources:
   - sourceTransform: {fileID: 1668257682}
     weight: 1
+--- !u!1 &1224591531 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2746608227343325639, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+  m_PrefabInstance: {fileID: 770978960}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1224591537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1224591531}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.2216981, g: 1, b: 0.29645234, a: 1}
+  m_EffectDistance: {x: 3, y: 3}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1226683833
 GameObject:
   m_ObjectHideFlags: 0
@@ -25980,9 +26039,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_text
-      value: 'Spawn Mat Grid
+      value: 'Add Mat Grid
 
 '
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
@@ -26020,6 +26091,10 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4771752389567740990, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: ee8ce5cd9c0883f4182b5cfd43cfd7fe, type: 3}
     - target: {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
@@ -26113,7 +26188,8 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
@@ -32353,6 +32429,14 @@ PrefabInstance:
       propertyPath: m_text
       value: Edit objects
       objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
+      objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
       value: ToggleMatsEditMode
@@ -32389,6 +32473,18 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4217222142677417399, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4217222142677417399, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4771752389567740990, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -2907958739317821849, guid: 64f884351318b694f942625580e64a8b, type: 3}
     - target: {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
@@ -32482,9 +32578,13 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2746608227343325639, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2131152603}
   m_SourcePrefab: {fileID: 100100000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
 --- !u!114 &1604080695 stripped
 MonoBehaviour:
@@ -43668,6 +43768,8 @@ MonoBehaviour:
   longPressSeconds: 1.5
   toggleButton: 256
   visibleOnStart: 0
+  lockScrollWhenHidden:
+  - {fileID: 539009355}
 --- !u!1001 &1947356851
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -44128,7 +44230,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_text
-      value: Spawn MAT
+      value: Add MAT
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSize
+      value: 35
+      objectReference: {fileID: 0}
+    - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
@@ -44166,6 +44276,10 @@ PrefabInstance:
       propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4771752389567740990, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: ee8ce5cd9c0883f4182b5cfd43cfd7fe, type: 3}
     - target: {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
@@ -44259,7 +44373,8 @@ PrefabInstance:
       value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 5499410032943263511, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
@@ -47324,6 +47439,26 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!1 &2131152597 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2746608227343325639, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+  m_PrefabInstance: {fileID: 1604080694}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2131152603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2131152597}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
+  m_EffectColor: {r: 0.2216981, g: 1, b: 0.29645234, a: 1}
+  m_EffectDistance: {x: 3, y: 3}
+  m_UseGraphicAlpha: 1
 --- !u!1 &2134571826 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6118531210901127039, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
