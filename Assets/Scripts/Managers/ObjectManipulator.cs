@@ -6,7 +6,8 @@ using UnityEngine;
 /// enabled:
 ///   - Hold either GRIP (hand trigger): the object rigidly follows that controller, so moving
 ///     and rotating the controller moves and rotates the object together (a natural "grab").
-///     Right hand wins when both grip.
+///     Right hand wins when both grip. This is the ONLY way to move an object - the index
+///     trigger is used purely to select/point (see EditModeManager), never to move.
 ///   - Per-axis scale on the object's own local axes (only when <see cref="AllowScale"/>):
 ///       right thumbstick X -> width  (local X)
 ///       right thumbstick Y -> height (local Y)
@@ -39,13 +40,11 @@ public class ObjectManipulator : MonoBehaviour
     private Transform _cachedTrackingSpace;
     private IObjectServerBinding _binding;
     private bool _dirty;
-    private bool _triggerGrabArmed;
 
     private void OnEnable()
     {
         _binding = GetComponent<IObjectServerBinding>();
         _grabController = OVRInput.Controller.None;
-        _triggerGrabArmed = false;
         _dirty = false;
     }
 
@@ -54,19 +53,6 @@ public class ObjectManipulator : MonoBehaviour
         // Flush any pending change if we get disabled right after a gesture (e.g. deselected).
         FlushIfDirty();
         _grabController = OVRInput.Controller.None;
-        _triggerGrabArmed = false;
-    }
-
-    /// <summary>
-    /// Starts a right-controller "ray grab" driven by the index trigger. Called by EditModeManager
-    /// when the user points at this object and pulls the trigger, so the object can be grabbed and
-    /// moved from a distance (in addition to the near grip grab). Stays active until the trigger is
-    /// released.
-    /// </summary>
-    public void BeginTriggerGrab()
-    {
-        _triggerGrabArmed = true;
-        _grabController = OVRInput.Controller.None; // force offset re-capture for the new grab
     }
 
     private void Update()
@@ -89,15 +75,8 @@ public class ObjectManipulator : MonoBehaviour
         float rightGrip = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.RTouch);
         float leftGrip = OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, OVRInput.Controller.LTouch);
 
-        // Right index trigger also grabs, but only after EditModeManager armed it by pointing at
-        // this object (a distance "ray grab"). It stays active until the trigger is released.
-        bool triggerHeld = OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger);
-        if (_triggerGrabArmed && !triggerHeld)
-        {
-            _triggerGrabArmed = false;
-        }
-
-        // Pick / keep an active controller. Grip (near grab) wins; right hand wins ties.
+        // Pick / keep an active controller. Only the GRIP (hand trigger) moves the object; the
+        // index trigger is intentionally NOT a movement input (it only selects). Right hand wins ties.
         OVRInput.Controller desired = OVRInput.Controller.None;
         if (rightGrip >= gripThreshold)
         {
@@ -106,10 +85,6 @@ public class ObjectManipulator : MonoBehaviour
         else if (leftGrip >= gripThreshold)
         {
             desired = OVRInput.Controller.LTouch;
-        }
-        else if (_triggerGrabArmed && triggerHeld)
-        {
-            desired = OVRInput.Controller.RTouch;
         }
 
         if (desired == OVRInput.Controller.None)

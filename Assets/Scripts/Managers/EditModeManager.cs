@@ -61,6 +61,9 @@ public class EditModeManager : Singleton<EditModeManager>
 
     private void UpdateRaySelection()
     {
+        // The right index trigger only SELECTS an object (point at it and pull the trigger). It no
+        // longer moves anything - moving/rotating is done exclusively with the grip (see
+        // ObjectManipulator). This keeps unsteady-hand trigger pulls from dragging portals/objects.
         if (!OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
         {
             return;
@@ -84,24 +87,18 @@ public class EditModeManager : Singleton<EditModeManager>
                 GameObject selectable = ResolveSelectable(hits[i].collider);
                 if (selectable != null)
                 {
-                    SelectAndGrab(selectable);
+                    SelectFromRay(selectable);
                     return;
                 }
             }
         }
     }
 
-    private void SelectAndGrab(GameObject target)
+    private void SelectFromRay(GameObject target)
     {
+        // Selection only. Movement is grip-only now, so pulling the trigger no longer starts a
+        // distance drag - it just makes this object the selected one, ready to be grip-grabbed.
         SetSelectedObject(target);
-
-        // The same trigger press also starts a ray grab, so pointing + holding the trigger grabs
-        // and moves the object (matching the near grip grab).
-        var manipulator = target.GetComponent<ObjectManipulator>();
-        if (manipulator != null)
-        {
-            manipulator.BeginTriggerGrab();
-        }
     }
 
     // Returns the manipulable object for the current mode that owns this collider, or null.
@@ -220,15 +217,30 @@ public class EditModeManager : Singleton<EditModeManager>
         editable.SetRestrictManipulationToEditMode(true);
 
         // Portals (collision boxes) are moved with the unified ObjectManipulator (grip grab), not the
-        // Meta ISDK grab rig - exactly like MATs. Their only auto-discovered "Interactable" is the
-        // reticle ray target added by ReticleSelectable, whose enabled state must be owned solely by
-        // ReticleSelectable (on only in portal edit mode). Without this, EditableObject re-enables it
-        // whenever ANY edit mode is active, so the reticle would snap onto portals during object
-        // editing and block picking the object inside/behind them. MATs neuter this the same way via
-        // ActionObject.DisableMetaGrabBehaviours.
+        // Meta ISDK grab rig. Their only auto-discovered "Interactable" is the reticle ray target
+        // added by ReticleSelectable, whose enabled state must be owned solely by ReticleSelectable
+        // (on only in portal edit mode). Without this, EditableObject re-enables it whenever ANY edit
+        // mode is active, so the reticle would snap onto portals during object editing and block
+        // picking the object inside/behind them.
         if (target.GetComponent<CollisionObjectBinding>() != null)
         {
             editable.DisableManipulationManagement();
+        }
+        // MATs are ALSO moved only by ObjectManipulator (grip grab). Their Meta ISDK grab rig is
+        // turned off in ActionObject.DisableMetaGrabBehaviours, but EditableObject would otherwise
+        // re-enable it in MAT edit mode - which brought the whole rig back, letting the index trigger
+        // ray-grab and MOVE the MAT (grip and trigger both worked). Force the rig off and stop
+        // EditableObject from managing it, then give the MAT the same reticle-only selection target
+        // portals use. Result: MATs select by pointing but move only via grip, exactly like portals.
+        else if (target.GetComponent<MatActionObjectBinding>() != null)
+        {
+            editable.ApplyEditMode(false); // undo any re-enable OnEnable/Awake may have just done
+            editable.DisableManipulationManagement();
+
+            if (target.GetComponent<ReticleSelectable>() == null)
+            {
+                target.AddComponent<ReticleSelectable>();
+            }
         }
 
         editable.ApplyEditMode(IsAnyEditMode);

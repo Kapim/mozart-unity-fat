@@ -59,6 +59,10 @@ public class GameManager : Singleton<GameManager>
     // Type name of a portal we just asked the server to add and want to auto-select once it is
     // echoed back and spawned (see CreatePortalBox / SpawnActionObject).
     private string _pendingPortalSelectType;
+    // Name of an object (MAT/MatGrid) we just asked the server to add and want to auto-select once
+    // it is echoed back and spawned (see AddNewObjectToScene / SpawnActionObject). Mirrors the
+    // portal auto-select above, but matches on the unique AO name since MATs share one object type.
+    private string _pendingObjectSelectName;
 
     private MeshDownloadManager meshDownloadManager;
     private Dictionary<string, GameObject> importedMeshes = new Dictionary<string, GameObject>();
@@ -347,6 +351,20 @@ public class GameManager : Singleton<GameManager>
         if (newActionObject != null)
         {
             EditModeManager.Instance?.RegisterEditable(newActionObject.gameObject);
+
+            // If this is the object we just added via the "Add object" button, enter object edit
+            // mode and auto-select it, mirroring the portal auto-select path above.
+            if (!string.IsNullOrEmpty(_pendingObjectSelectName) &&
+                actionObject.Data.Meta.Name == _pendingObjectSelectName)
+            {
+                _pendingObjectSelectName = null;
+                var editModeManager = EditModeManager.Instance;
+                if (editModeManager != null)
+                {
+                    editModeManager.SetMatEditMode(true);
+                    editModeManager.SetSelectedObject(newActionObject.gameObject);
+                }
+            }
         }
 
         return newActionObject;
@@ -539,18 +557,22 @@ public class GameManager : Singleton<GameManager>
                     DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(originOrientation)));
        switch (type)
         {
-            case ObjectType.MAT:                
-                await SceneManager.AddActionObjectWithDefaultParametersAsync("Mat", GetFreeAOName("mat"), pose);
+            case ObjectType.MAT:
+                // Remember the exact name so SpawnActionObject can auto-select it once the server
+                // echoes it back, just like the "Add Portal" button does.
+                _pendingObjectSelectName = GetFreeAOName("mat");
+                await SceneManager.AddActionObjectWithDefaultParametersAsync("Mat", _pendingObjectSelectName, pose);
                 break;
             case ObjectType.MatGrid:
+                _pendingObjectSelectName = GetFreeAOName("mat_grid");
                 if (parameters != null)
                 {
                     Debug.LogError("adding with parameters");
-                    await SceneManager.AddActionObjectAsync("MatGrid", GetFreeAOName("mat_grid"), pose, parameters);
+                    await SceneManager.AddActionObjectAsync("MatGrid", _pendingObjectSelectName, pose, parameters);
                 } else
                 {
                     Debug.LogError("adding without parameters");
-                    await SceneManager.AddActionObjectWithDefaultParametersAsync("MatGrid", GetFreeAOName("mat_grid"), pose);
+                    await SceneManager.AddActionObjectWithDefaultParametersAsync("MatGrid", _pendingObjectSelectName, pose);
                 }
                 break;
             case ObjectType.Table:
