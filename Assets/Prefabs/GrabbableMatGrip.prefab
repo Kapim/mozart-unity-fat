@@ -200,7 +200,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be99ca1ce9e59914694d9747dd605477, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  matPrefab: {fileID: 8561677532758485037, guid: 995bc64a7e4bdc942a4273ebe0113c39, type: 3}
+  matPrefab: {fileID: 8561677532758485037, guid: 507f81d3169152648a0f562775197a81, type: 3}
   grid: {fileID: 7499462677105068036}
   boxCollider: {fileID: 5965499944622092016}
   movePattern: 0

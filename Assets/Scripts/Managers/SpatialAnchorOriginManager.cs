@@ -20,7 +20,10 @@ public class SpatialAnchorOriginManager : MonoBehaviour
     [Header("Origin Edit Mode")]
     [SerializeField] private Vector3 originMarkerScale = new Vector3(0.12f, 0.12f, 0.12f);
     [SerializeField] private Color originMarkerColor = new Color(0.1f, 0.9f, 0.9f, 0.85f);
-    [SerializeField] private int originMarkerLayer = 8;
+    // Default layer (0), NOT the legacy "content" layer 8 — that layer is entangled with the portal
+    // stencil pipeline, which masks objects on it out so they never render (same trap the delete
+    // widget hit). Keep the marker on the Default layer so it is actually visible.
+    [SerializeField] private int originMarkerLayer = 0;
     [SerializeField] private float originMoveSpeed = 0.5f;
     [SerializeField] private float originVerticalSpeed = 0.5f;
     [SerializeField] private float originRotateSpeedDegPerSec = 90f;
@@ -475,11 +478,27 @@ public class SpatialAnchorOriginManager : MonoBehaviour
             var renderer = _originMarker.GetComponent<MeshRenderer>();
             if (renderer != null)
             {
-                Shader shader = Shader.Find("Unlit/Color");
+                // Prefer URP/Unlit: it is guaranteed to be in the build (Always Included Shaders),
+                // whereas the legacy built-in "Unlit/Color" gets stripped on device so Shader.Find
+                // returns null and the cube is left with no valid material (invisible/magenta).
+                Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
+                if (shader == null)
+                {
+                    shader = Shader.Find("Unlit/Color");
+                }
+
                 if (shader != null)
                 {
                     _originMarkerMaterial = new Material(shader);
-                    _originMarkerMaterial.color = originMarkerColor;
+                    if (_originMarkerMaterial.HasProperty("_BaseColor"))
+                    {
+                        _originMarkerMaterial.SetColor("_BaseColor", originMarkerColor);
+                    }
+                    else
+                    {
+                        _originMarkerMaterial.color = originMarkerColor;
+                    }
+
                     renderer.sharedMaterial = _originMarkerMaterial;
                 }
             }

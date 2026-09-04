@@ -644,9 +644,10 @@ public class MeshDownloadManager : Singleton<MeshDownloadManager>
             Material material = CreateRuntimeMeshMaterial(diffuseTexture);
             renderer.material = material;
 
-            MeshCollider collider = meshObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = mesh;
-            collider.convex = false;
+            // No MeshCollider on the room/scene scan mesh: cooking a non-convex collider
+            // for a ~500k-triangle scan is a large one-time CPU hitch + memory cost, and
+            // this mesh is not raycast against (per-shape picking uses the separate cluster
+            // colliders in ObjectPicker). Re-add here if room-mesh physics is ever needed.
 
             return meshObject;
         }

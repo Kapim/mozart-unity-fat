@@ -13,7 +13,7 @@ public class AddGridMenu : MonoBehaviour
     private DropDownGroup RowsDropdown, ColsDropdown, MovementDropdown;
     public void AddButtonOnClick()
     {
-        
+
         string movementText = MovementDropdown.SelectedToggle.GetComponentInChildren<TMP_Text>().text;
         Parameter rows = new(name: "rows", type: "integer", value: RowsDropdown.SelectedToggle.GetComponentInChildren<TMP_Text>().text);
         Parameter cols = new(name: "cols", type: "integer", value: ColsDropdown.SelectedToggle.GetComponentInChildren<TMP_Text>().text);

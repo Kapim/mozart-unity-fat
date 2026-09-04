@@ -453,11 +453,22 @@ public class GameManager : Singleton<GameManager>
     }
 
     public void SpawnMatGrid()
-    {   
-        AddGridMenu.SetActive(true);
-        SceneEditorMainMenu.SetActive(false);
-        //Quaternion spawnRotation = Quaternion.identity;
-        //AddNewObjectToScene(ObjectType.MatGrid, GetPositionInFrontOfCamera(), spawnRotation);
+    {
+        // TEMPORARY (experiment): skip the AddGridMenu shape/behaviour dialog entirely and spawn a
+        // fixed 1x3 grid with RANDOM movement straight from the tool menu, so the user isn't burdened
+        // with the dialog. To restore the dialog, bring back the two SetActive calls below.
+        //   AddGridMenu.SetActive(true);
+        //   SceneEditorMainMenu.SetActive(false);
+        Parameter rows = new(name: "rows", type: "integer", value: "1");
+        Parameter cols = new(name: "cols", type: "integer", value: "3");
+        // "\"RANDOM\"" == JsonConvert.SerializeObject("RANDOM") — the JSON-encoded string the backend
+        // expects for move_pattern (same format the dialog produced).
+        Parameter movement = new(name: "move_pattern", type: "string", value: "\"RANDOM\"");
+        AddNewObjectToScene(
+            ObjectType.MatGrid,
+            GetPositionInFrontOfCamera(),
+            Quaternion.identity,
+            new List<Parameter> { rows, cols, movement });
     }
 
     public void SpawnConveyor()
@@ -514,9 +525,18 @@ public class GameManager : Singleton<GameManager>
     {
         Debug.LogError("AddNewObjectToScene start");
         Debug.Assert(SceneManager != null);
+        // The backend stores object poses relative to the scene Origin, not in world space. The
+        // caller passes a world-space pose (e.g. GetPositionInFrontOfCamera), so convert it into
+        // Origin space first - exactly like the portal/collision-box path does via ToOriginSpace.
+        // Without this the object is offset by the Origin transform (anchor/calibration) and spawns
+        // in the wrong place, while portals (already Origin-relative) spawn correctly.
+        Vector3 originPosition = ToOriginSpace(position);
+        Quaternion originOrientation = Origin != null
+            ? Quaternion.Inverse(Origin.rotation) * orientation
+            : orientation;
         var pose = new Arcor2.ClientSdk.Communication.OpenApi.Models.Pose(
-                    DataHelper.Vector3ToPosition(TransformConvertor.UnityToROS(position)),
-                    DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(orientation)));
+                    DataHelper.Vector3ToPosition(TransformConvertor.UnityToROS(originPosition)),
+                    DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(originOrientation)));
        switch (type)
         {
             case ObjectType.MAT:                
