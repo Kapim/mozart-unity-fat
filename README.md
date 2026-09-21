@@ -20,11 +20,16 @@ bounding box), so naturally open regions (e.g. the gap between table legs) stay 
 
 ### Using the portals (in-headset)
 
-Two ToolMenu toggle buttons control portals:
+Two ToolMenu toggle buttons control **object-shaped** portals:
 
 - **Add Portal** — aim the right-controller laser at an object (green = on a valid cluster,
   red = not), pull the trigger to turn that object's silhouette into a portal.
 - **Delete Portal** — aim at an existing portal and pull the trigger to remove it.
+
+**Box-shaped** portals are added by a separate button, which spawns a ready-made bounding box in
+front of you and selects it for editing — grip to move/rotate it, thumbsticks to resize. See
+[Edit Mode, Object Selection and Deletion](Docs/edit-mode-and-deletion.md) and the portal section
+of [Runtime Object Lifecycle](Docs/runtime-object-lifecycle.md).
 
 Multiple portals can be active at once. Picking is by exact per-cluster `MeshCollider`
 raycast (`ObjectPicker.cs`), so the selection matches the object's real shape.

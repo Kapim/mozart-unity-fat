@@ -2,11 +2,21 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
+/// <summary>
+/// Shows a translucent blue box over a portal/collision box while portal edit mode is active, so
+/// every editable box is visible. Selection itself is indicated separately by
+/// <see cref="SelectionWireframe"/> (an orange wireframe), so this overlay does not change colour
+/// when the box is selected.
+/// </summary>
 public class CollisionBoxEditOverlay : MonoBehaviour
 {
-    [SerializeField] private Color normalColor = new Color(0.15f, 0.8f, 1f, 0.18f);
-    [SerializeField] private Color selectedColor = new Color(1f, 0.55f, 0.1f, 0.32f);
-    [SerializeField] private float selectedScaleMultiplier = 1.03f;
+    /// <summary>
+    /// The translucent blue used for the edit overlay. Shared so other flows (e.g. the
+    /// portal placement preview) can match the exact look of an editable/moving portal.
+    /// </summary>
+    public static readonly Color EditOverlayColor = new Color(0.15f, 0.8f, 1f, 0.18f);
+
+    [SerializeField] private Color normalColor = EditOverlayColor;
 
     private GameObject _overlayObject;
     private Material _overlayMaterial;
@@ -15,7 +25,7 @@ public class CollisionBoxEditOverlay : MonoBehaviour
     private void Awake()
     {
         EnsureOverlay();
-        ApplyVisualState(false, false);
+        ApplyVisualState(false);
     }
 
     private void OnEnable()
@@ -24,7 +34,6 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         if (_editModeManager != null)
         {
             _editModeManager.EditModeChanged += OnEditModeChanged;
-            _editModeManager.SelectedObjectChanged += OnSelectedObjectChanged;
             ApplyCurrentState();
         }
     }
@@ -34,10 +43,9 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         if (_editModeManager != null)
         {
             _editModeManager.EditModeChanged -= OnEditModeChanged;
-            _editModeManager.SelectedObjectChanged -= OnSelectedObjectChanged;
         }
 
-        ApplyVisualState(false, false);
+        ApplyVisualState(false);
     }
 
     private void OnDestroy()
@@ -53,24 +61,13 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         ApplyCurrentState();
     }
 
-    private void OnSelectedObjectChanged(GameObject selectedObject)
-    {
-        ApplyCurrentState(selectedObject);
-    }
-
     private void ApplyCurrentState()
     {
-        ApplyCurrentState(_editModeManager != null ? _editModeManager.SelectedObject : null);
-    }
-
-    private void ApplyCurrentState(GameObject selectedObject)
-    {
         bool isEditMode = _editModeManager != null && _editModeManager.IsEditMode;
-        bool isSelected = selectedObject == gameObject;
-        ApplyVisualState(isEditMode, isSelected);
+        ApplyVisualState(isEditMode);
     }
 
-    private void ApplyVisualState(bool visible, bool selected)
+    private void ApplyVisualState(bool visible)
     {
         EnsureOverlay();
         if (_overlayObject == null || _overlayMaterial == null)
@@ -79,8 +76,8 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         }
 
         _overlayObject.SetActive(visible);
-        _overlayMaterial.color = selected ? selectedColor : normalColor;
-        _overlayObject.transform.localScale = Vector3.one * (selected ? selectedScaleMultiplier : 1f);
+        _overlayMaterial.color = normalColor;
+        _overlayObject.transform.localScale = Vector3.one;
     }
 
     private void EnsureOverlay()
@@ -121,7 +118,11 @@ public class CollisionBoxEditOverlay : MonoBehaviour
         }
     }
 
-    private static Material CreateOverlayMaterial()
+    /// <summary>
+    /// Builds the translucent material used for the edit overlay. Public so other flows can reuse
+    /// the exact same render state (e.g. the portal placement preview). Caller owns the instance.
+    /// </summary>
+    public static Material CreateOverlayMaterial()
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
         if (shader == null)

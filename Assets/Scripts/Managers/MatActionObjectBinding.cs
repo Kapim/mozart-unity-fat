@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Arcor2.ClientSdk.ClientServices.Managers;
 using UnityEngine;
 
-public class MatActionObjectBinding : MonoBehaviour
+public class MatActionObjectBinding : MonoBehaviour, IObjectServerBinding
 {
+    public bool SupportsScale => false;
+
     public ActionObjectManager ActionObjectManager { get; private set; }
     public string ActionObjectId { get; private set; }
 
@@ -62,6 +64,25 @@ public class MatActionObjectBinding : MonoBehaviour
         finally
         {
             _isPersisting = false;
+        }
+    }
+
+    public async Task<bool> RemoveAsync(bool force = true)
+    {
+        if (ActionObjectManager == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            await ActionObjectManager.RemoveAsync(force);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to remove MAT action object '{ActionObjectId}': {ex}");
+            return false;
         }
     }
 

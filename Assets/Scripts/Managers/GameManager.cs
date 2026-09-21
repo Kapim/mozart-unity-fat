@@ -50,7 +50,20 @@ public class GameManager : Singleton<GameManager>
     float height = 1f;
 
     public Material BoxMaterial, BoxMaterialTemp;
-    
+
+    [Header("Portal Placement")]
+    [Tooltip("Default size (in Origin-local units) of the portal bounding box spawned in front of the user.")]
+    public Vector3 PortalPlacementDefaultSize = new Vector3(0.5f, 0.5f, 0.1f);
+    [Tooltip("Distance in front of the camera where the portal box is first spawned.")]
+    public float PortalPlacementSpawnDistance = 1.0f;
+    // Type name of a portal we just asked the server to add and want to auto-select once it is
+    // echoed back and spawned (see CreatePortalBox / SpawnActionObject).
+    private string _pendingPortalSelectType;
+    // Name of an object (MAT/MatGrid) we just asked the server to add and want to auto-select once
+    // it is echoed back and spawned (see AddNewObjectToScene / SpawnActionObject). Mirrors the
+    // portal auto-select above, but matches on the unique AO name since MATs share one object type.
+    private string _pendingObjectSelectName;
+
     private MeshDownloadManager meshDownloadManager;
     private Dictionary<string, GameObject> importedMeshes = new Dictionary<string, GameObject>();
     private GameObject serverSceneMesh;
@@ -298,20 +311,60 @@ public class GameManager : Singleton<GameManager>
                         binding = collisionBox.AddComponent<CollisionObjectBinding>();
                     }
                     binding.Initialize(actionObject, Origin);
+                    // Blue overlay marks every editable box in edit mode; the wireframe marks the
+                    // one that is currently selected.
                     if (collisionBox.GetComponent<CollisionBoxEditOverlay>() == null)
                     {
                         collisionBox.AddComponent<CollisionBoxEditOverlay>();
                     }
+                    if (collisionBox.GetComponent<SelectionWireframe>() == null)
+                    {
+                        collisionBox.AddComponent<SelectionWireframe>();
+                    }
+                    // Give the box the same reticle target MATs/walls have so the "cursor" highlights
+                    // and selects it, instead of only the hidden controller ray.
+                    if (collisionBox.GetComponent<ReticleSelectable>() == null)
+                    {
+                        collisionBox.AddComponent<ReticleSelectable>();
+                    }
                     EditModeManager.Instance?.RegisterEditable(collisionBox);
+
+                    // If this is the portal we just added via the "Add Portal" button, enter edit
+                    // mode and auto-select it so the user immediately manipulates the finished portal.
+                    if (!string.IsNullOrEmpty(_pendingPortalSelectType) &&
+                        actionObject.Data.Meta.Type == _pendingPortalSelectType)
+                    {
+                        _pendingPortalSelectType = null;
+                        var editModeManager = EditModeManager.Instance;
+                        if (editModeManager != null)
+                        {
+                            editModeManager.SetEditMode(true);
+                            editModeManager.SetSelectedObject(collisionBox);
+                        }
+                    }
                 }
 
-               
+
                 break;
         }
 
         if (newActionObject != null)
         {
             EditModeManager.Instance?.RegisterEditable(newActionObject.gameObject);
+
+            // If this is the object we just added via the "Add object" button, enter object edit
+            // mode and auto-select it, mirroring the portal auto-select path above.
+            if (!string.IsNullOrEmpty(_pendingObjectSelectName) &&
+                actionObject.Data.Meta.Name == _pendingObjectSelectName)
+            {
+                _pendingObjectSelectName = null;
+                var editModeManager = EditModeManager.Instance;
+                if (editModeManager != null)
+                {
+                    editModeManager.SetMatEditMode(true);
+                    editModeManager.SetSelectedObject(newActionObject.gameObject);
+                }
+            }
         }
 
         return newActionObject;
@@ -418,7 +471,7 @@ public class GameManager : Singleton<GameManager>
     }
 
     public void SpawnMatGrid()
-    {   
+    {
         AddGridMenu.SetActive(true);
         SceneEditorMainMenu.SetActive(false);
         //Quaternion spawnRotation = Quaternion.identity;
@@ -479,23 +532,36 @@ public class GameManager : Singleton<GameManager>
     {
         Debug.LogError("AddNewObjectToScene start");
         Debug.Assert(SceneManager != null);
+        // The backend stores object poses relative to the scene Origin, not in world space. The
+        // caller passes a world-space pose (e.g. GetPositionInFrontOfCamera), so convert it into
+        // Origin space first - exactly like the portal/collision-box path does via ToOriginSpace.
+        // Without this the object is offset by the Origin transform (anchor/calibration) and spawns
+        // in the wrong place, while portals (already Origin-relative) spawn correctly.
+        Vector3 originPosition = ToOriginSpace(position);
+        Quaternion originOrientation = Origin != null
+            ? Quaternion.Inverse(Origin.rotation) * orientation
+            : orientation;
         var pose = new Arcor2.ClientSdk.Communication.OpenApi.Models.Pose(
-                    DataHelper.Vector3ToPosition(TransformConvertor.UnityToROS(position)),
-                    DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(orientation)));
+                    DataHelper.Vector3ToPosition(TransformConvertor.UnityToROS(originPosition)),
+                    DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(originOrientation)));
        switch (type)
         {
-            case ObjectType.MAT:                
-                await SceneManager.AddActionObjectWithDefaultParametersAsync("Mat", GetFreeAOName("mat"), pose);
+            case ObjectType.MAT:
+                // Remember the exact name so SpawnActionObject can auto-select it once the server
+                // echoes it back, just like the "Add Portal" button does.
+                _pendingObjectSelectName = GetFreeAOName("mat");
+                await SceneManager.AddActionObjectWithDefaultParametersAsync("Mat", _pendingObjectSelectName, pose);
                 break;
             case ObjectType.MatGrid:
+                _pendingObjectSelectName = GetFreeAOName("mat_grid");
                 if (parameters != null)
                 {
                     Debug.LogError("adding with parameters");
-                    await SceneManager.AddActionObjectAsync("MatGrid", GetFreeAOName("mat_grid"), pose, parameters);
+                    await SceneManager.AddActionObjectAsync("MatGrid", _pendingObjectSelectName, pose, parameters);
                 } else
                 {
                     Debug.LogError("adding without parameters");
-                    await SceneManager.AddActionObjectWithDefaultParametersAsync("MatGrid", GetFreeAOName("mat_grid"), pose);
+                    await SceneManager.AddActionObjectWithDefaultParametersAsync("MatGrid", _pendingObjectSelectName, pose);
                 }
                 break;
             case ObjectType.Table:
@@ -618,20 +684,31 @@ public class GameManager : Singleton<GameManager>
 
     async void FinalizeBox()
     {
-        //CommunicationManager.Arcor2Session.CreateObjectTypeAsync(this, CommunicationManager.
+        await AddVirtualCollisionBoxAsync(Box.transform.localScale, Box.transform.localPosition, Box.transform.localRotation);
+        GameObject.Destroy(Box.gameObject);
+        Box = null;
+    }
+
+    /// <summary>
+    /// Sends a box-shaped virtual collision object (the portal geometry) to the ARCOR2
+    /// scene. Transform values are expected in Origin-local space. The server echoes the
+    /// object back, which is then spawned as the real grabbable collision/portal box.
+    /// Returns the object type name of the added box (so the caller can identify it once it is
+    /// spawned), or null if the request failed.
+    /// </summary>
+    private async Task<string> AddVirtualCollisionBoxAsync(Vector3 localScale, Vector3 localPosition, Quaternion localRotation)
+    {
         ObjectModel objectModel = new ObjectModel();
-        ObjectTypeMeta objectTypeMeta;
         ObjectModel.TypeEnum type = ObjectModel.TypeEnum.Box;
-        Box box = new(GetFreeObjectTypeName("CollisionBox"), (decimal) Box.transform.localScale.x, 
-            (decimal) Box.transform.localScale.y, (decimal) Box.transform.localScale.z);
+        Box box = new(GetFreeObjectTypeName("CollisionBox"), (decimal) localScale.x,
+            (decimal) localScale.y, (decimal) localScale.z);
         objectModel.Type = type;
         objectModel.Box = box;
-        objectTypeMeta = new ObjectTypeMeta(builtIn: false, description: "", type: box.Id, objectModel: objectModel,
+        ObjectTypeMeta objectTypeMeta = new ObjectTypeMeta(builtIn: false, description: "", type: box.Id, objectModel: objectModel,
             varBase: "CollisionObject", hasPose: true, modified: DateTime.Now);
-        //Arcor2.ClientSdk.Communication.OpenApi.Models.Pose pose = new Arcor2.ClientSdk.Communication.OpenApi.Models.Pose(new Position(Box.transform.posi;
 
-        Vector3 point = TransformConvertor.UnityToROS(Box.transform.localPosition);
-        Arcor2.ClientSdk.Communication.OpenApi.Models.Pose pose = new Arcor2.ClientSdk.Communication.OpenApi.Models.Pose(DataHelper.Vector3ToPosition(point), DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(Box.transform.localRotation)));
+        Vector3 point = TransformConvertor.UnityToROS(localPosition);
+        Arcor2.ClientSdk.Communication.OpenApi.Models.Pose pose = new Arcor2.ClientSdk.Communication.OpenApi.Models.Pose(DataHelper.Vector3ToPosition(point), DataHelper.QuaternionToOrientation(TransformConvertor.UnityToROS(localRotation)));
         AddVirtualCollisionObjectToSceneResponse result = await CommunicationManager.Arcor2Session.GetUnderlyingArcor2Client().AddVirtualCollisionObjectToSceneAsync(new AddVirtualCollisionObjectToSceneRequestArgs(objectTypeMeta.Type, pose, objectTypeMeta.ObjectModel));
         if (!result.Result)
         {
@@ -639,9 +716,69 @@ public class GameManager : Singleton<GameManager>
             {
                 Debug.LogError(msg);
             }
+            return null;
         }
-        GameObject.Destroy(Box.gameObject);
-        Box = null;
+
+        return objectTypeMeta.Type;
+    }
+
+    /// <summary>
+    /// Entry point for the "Add Portal" button. Immediately adds a portal at a default pose in
+    /// front of the user, then enters edit mode and auto-selects the freshly added portal, so the
+    /// user starts manipulating a finished portal right away (no separate placement step).
+    /// </summary>
+    public async void CreatePortalBox()
+    {
+        // Default pose: in front of the headset, facing the user (yaw only), at the default size.
+        Vector3 localPosition = Vector3.zero;
+        Quaternion localRotation = Quaternion.identity;
+
+        Transform head = GetHeadTransform();
+        if (head != null)
+        {
+            Vector3 worldPos = head.position + head.forward * PortalPlacementSpawnDistance;
+
+            Vector3 toHead = head.position - worldPos;
+            toHead.y = 0f;
+            Quaternion worldRot = toHead.sqrMagnitude < 1e-4f
+                ? Quaternion.identity
+                : Quaternion.LookRotation(toHead.normalized, Vector3.up);
+
+            if (Origin != null)
+            {
+                localPosition = Origin.InverseTransformPoint(worldPos);
+                localRotation = Quaternion.Inverse(Origin.rotation) * worldRot;
+            }
+            else
+            {
+                localPosition = worldPos;
+                localRotation = worldRot;
+            }
+        }
+
+        // Remember the type of the portal we are adding so SpawnActionObject can select it once the
+        // server echoes it back and it is spawned.
+        _pendingPortalSelectType = await AddVirtualCollisionBoxAsync(
+            PortalPlacementDefaultSize, localPosition, localRotation);
+
+        // Make sure edit mode is on so the newly spawned portal is registered as editable and its
+        // manipulation/overlay behaves like any other edited portal.
+        EditModeManager.Instance?.SetEditMode(true);
+    }
+
+    /// <summary>
+    /// The headset (center-eye) transform. Prefers the OVRCameraRig center-eye anchor and
+    /// falls back to Camera.main, so portal spawning does not depend on the MainCamera tag.
+    /// </summary>
+    private Transform GetHeadTransform()
+    {
+        var rig = FindFirstObjectByType<OVRCameraRig>();
+        if (rig != null && rig.centerEyeAnchor != null)
+        {
+            return rig.centerEyeAnchor;
+        }
+
+        return Camera.main != null ? Camera.main.transform : null;
     }
 
     public string GetFreeObjectTypeName(string objectTypeName)
@@ -664,6 +801,23 @@ public class GameManager : Singleton<GameManager>
     }
 
     bool ObjectTypeNameExists(string objectTypeName) {
+        // Check the live SDK collection, not the local snapshot: ObjectTypeManagerList is
+        // only filled once at connect time, so object types created at runtime (e.g. every
+        // virtual collision box added for a portal) would otherwise be invisible here. That
+        // made GetFreeObjectTypeName hand out "CollisionBox" repeatedly, and the server
+        // rejected the second portal as a duplicate object type. The SDK keeps ObjectTypes
+        // up to date, so query it directly.
+        if (CommunicationManager?.Arcor2Session?.ObjectTypes != null)
+        {
+            foreach (var objectType in CommunicationManager.Arcor2Session.ObjectTypes)
+            {
+                if (objectType.Id == objectTypeName)
+                {
+                    return true;
+                }
+            }
+        }
+
         return ObjectTypeManagerList.ContainsKey(objectTypeName);
     }
 

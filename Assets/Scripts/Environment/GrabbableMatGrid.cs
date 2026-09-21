@@ -68,19 +68,19 @@ public class GrabbableMatGrid : ActionObject
         float space = 0.05f;
         float tileHeight = 0.2f;
 
-        // krok mezi støedy dlaždic
+        // krok mezi stï¿½edy dlaï¿½dic
         float stepX = width + space;
         float stepZ = height + space;
 
-        // span mezi první a poslední støedovou pozicí (center-to-center)
+        // span mezi prvnï¿½ a poslednï¿½ stï¿½edovou pozicï¿½ (center-to-center)
         float spanX = (gridCols - 1) * stepX;
         float spanZ = (gridRows - 1) * stepZ;
 
-        // start tak, aby støedy byly vycentrované kolem 0
+        // start tak, aby stï¿½edy byly vycentrovanï¿½ kolem 0
         float startX = -spanX / 2f;
         float startZ = -spanZ / 2f;
 
-        // celková velikost collideru (edge-to-edge)
+        // celkovï¿½ velikost collideru (edge-to-edge)
         float totalWidth = gridCols * width + (gridCols - 1) * space;
         float totalDepth = gridRows * height + (gridRows - 1) * space;
 
@@ -90,7 +90,7 @@ public class GrabbableMatGrid : ActionObject
             for (int j = 0; j < gridRows; j++)
             {
                 MozartTIle tile = Instantiate(matPrefab, grid.transform).GetComponent<MozartTIle>();
-                float posX = startX + i * stepX; // støed dlaždice
+                float posX = startX + i * stepX; // stï¿½ed dlaï¿½dice
                 float posZ = startZ + j * stepZ;
 
                 tile.transform.localPosition = new Vector3(posX, 0f, posZ);
@@ -99,11 +99,11 @@ public class GrabbableMatGrid : ActionObject
 
             }
         }
-        float centerLocalX = startX + spanX / 2f; // = 0 pøi centrovaném startu, ale takto je to generické
+        float centerLocalX = startX + spanX / 2f; // = 0 pï¿½i centrovanï¿½m startu, ale takto je to generickï¿½
         float centerLocalZ = startZ + spanZ / 2f;
         Vector3 gridCenterWorld = grid.transform.TransformPoint(new Vector3(centerLocalX, 0f, centerLocalZ));
 
-        // pøevedeme støed do lokálních souøadnic objektu s colliderm (gridParent)
+        // pï¿½evedeme stï¿½ed do lokï¿½lnï¿½ch souï¿½adnic objektu s colliderm (gridParent)
         Vector3 colliderLocalCenter = boxCollider.transform.InverseTransformPoint(gridCenterWorld);
 
 
@@ -115,7 +115,30 @@ public class GrabbableMatGrid : ActionObject
             Debug.LogError("moving start");
             StartCoroutine(CallEveryHalfSecond());
         }
-           
+
+        // Same as GrabbableMat: sync pose to the server and be selectable/movable through the
+        // unified control model, with the Meta SDK grab turned off.
+        Transform origin = GameManager.Instance != null && GameManager.Instance.Origin != null
+            ? GameManager.Instance.Origin
+            : transform.parent;
+
+        if (origin != null)
+        {
+            var binding = GetComponent<MatActionObjectBinding>();
+            if (binding == null)
+            {
+                binding = gameObject.AddComponent<MatActionObjectBinding>();
+            }
+
+            binding.Initialize(actionObject, origin);
+        }
+
+        DisableMetaGrabBehaviours();
+
+        if (GetComponent<SelectionWireframe>() == null)
+        {
+            gameObject.AddComponent<SelectionWireframe>();
+        }
     }
 
     IEnumerator CallEveryHalfSecond()

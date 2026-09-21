@@ -12,8 +12,9 @@ The documentation is maintained as part of the repository so that architectural 
 4. [Diminished Reality](diminished-reality.md)
 5. [Render Pipeline and Stencil](render-pipeline-and-stencil.md)
 6. [Runtime Object Lifecycle](runtime-object-lifecycle.md)
-7. [Debugging and Profiling](debugging-and-profiling.md)
-8. [ADR-001: Portal Rendering on Quest](adr/adr-001-portal-rendering-on-quest.md)
+7. [Edit Mode, Object Selection and Deletion](edit-mode-and-deletion.md)
+8. [Debugging and Profiling](debugging-and-profiling.md)
+9. [ADR-001: Portal Rendering on Quest](adr/adr-001-portal-rendering-on-quest.md)
 
 ## Scope
 
