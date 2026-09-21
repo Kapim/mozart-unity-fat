@@ -9603,6 +9603,9 @@ MonoBehaviour:
   CutMeshSubLabel: {fileID: 1267620043}
   MeshAlignmentSubLabel: {fileID: 651871712}
   OriginAnchorSubLabel: {fileID: 332612969}
+  PortalEditToggle: {fileID: 1386224942}
+  ObjectEditToggle: {fileID: 2027414142}
+  rebuildMeshOnPortalChange: 1
 --- !u!114 &355818575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10167,7 +10170,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2169669742819329091, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_text
-      value: Select Rectangle
+      value: Add Box Portal
       objectReference: {fileID: 0}
     - target: {fileID: 2241387638278579712, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Name
@@ -10247,7 +10250,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SelectRectangle
+      value: CreatePortalBox
       objectReference: {fileID: 0}
     - target: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -15588,6 +15591,8 @@ MonoBehaviour:
   SelectRectangleLabel: {fileID: 264400322}
   BoxMaterial: {fileID: 2100000, guid: 6a8d5e78525079a4d9e4cc4a8ce0c203, type: 2}
   BoxMaterialTemp: {fileID: 2100000, guid: 599b01c5f1d17436c89b88cc04257314, type: 2}
+  PortalPlacementDefaultSize: {x: 0.5, y: 0.5, z: 0.1}
+  PortalPlacementSpawnDistance: 1
 --- !u!114 &726872388
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27111,6 +27116,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 713890223910586000, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
   m_PrefabInstance: {fileID: 770978960}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1386224942 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+  m_PrefabInstance: {fileID: 770978960}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &1392081781 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8440492077479114691, guid: 9751b51ddd005974bb2afb20cc27e4f5, type: 3}
@@ -45509,6 +45525,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3903482226883268839, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
   m_PrefabInstance: {fileID: 2041321517}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2027414142 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6225694070640939218, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+  m_PrefabInstance: {fileID: 1604080694}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2033400415
 PrefabInstance:
   m_ObjectHideFlags: 0
