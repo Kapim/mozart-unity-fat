@@ -62,6 +62,30 @@ Current path:
 
 This means collision-object scene data currently doubles as Portal Window placement data.
 
+#### Creating a portal in-headset
+
+Two independent ways to create a portal coexist, and both stay available:
+
+| | Box-shaped | Object-shaped |
+|---|---|---|
+| Menu button | **Add Portal** (box) | **Add Portal** (silhouette) |
+| Driven by | `GameManager.CreatePortalBox` | `ObjectPicker.cs` |
+| Shape | ARCOR2 virtual collision box | a segmented cluster's own mesh |
+| Server object | yes — added to the ARCOR2 scene | no — local stencil mask only |
+
+`CreatePortalBox` spawns a **finished bounding box** in mid-air, `PortalPlacementSpawnDistance`
+in front of the headset at `PortalPlacementDefaultSize`, facing the user (yaw only). The box is
+added to the ARCOR2 scene as a virtual collision object; once the server echoes it back and it is
+spawned, portal edit mode is entered and the new box is auto-selected, so it can be moved, rotated
+and scaled straight away (see [Edit Mode, Object Selection and Deletion](edit-mode-and-deletion.md)).
+
+The older flow that built the box by marking three points on the floor
+(`GameManager.SelectRectangle` / `PointOnFloorSelected` / `FinalizeBox`, driven by `Floor.cs`) is
+still in the code but is no longer wired to a menu button. Both paths end in the same
+`AddVirtualCollisionBoxAsync` call, so re-wiring a button to `SelectRectangle` restores it.
+
+For the object-shaped path see README, "Object-Shaped Portals".
+
 ## Alternate Scene Lifecycle
 
 The Alternate Scene is currently implemented mainly through the scene mesh path.

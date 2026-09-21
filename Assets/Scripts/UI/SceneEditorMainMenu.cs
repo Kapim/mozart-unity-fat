@@ -13,6 +13,21 @@ public class SceneEditorMainMenu : MonoBehaviour
     public string DefaultMeshIdForBinding;
     public TMP_Text CloseSceneSubLabel, SaveSceneSubLabel, EditModeSubLabel, MatEditModeSubLabel, CutMeshSubLabel, MeshAlignmentSubLabel, OriginAnchorSubLabel;
 
+    [Header("Edit mode buttons")]
+    [Tooltip("The 'Edit portals' toggle. Optional - when assigned, its on/off graphic is driven " +
+             "by the real edit-mode state instead of by the last click.")]
+    public Toggle PortalEditToggle;
+    [Tooltip("The 'Edit objects' (MAT) toggle. Optional - see Portal Edit Toggle.")]
+    public Toggle ObjectEditToggle;
+
+    [Header("Scene mesh")]
+    [Tooltip("When ON (default), leaving collision edit mode sends an OBB-cut request to the " +
+             "mesh service, so the scene mesh is carved by the portal boxes. Turn OFF to keep " +
+             "the full scene mesh and let portals render against it via the stencil pipeline - " +
+             "cheaper, and what the pilot experiment used. Mesh download and mesh transform " +
+             "saving (rotation, etc.) are unaffected either way.")]
+    [SerializeField] private bool rebuildMeshOnPortalChange = true;
+
     private bool _isCollisionMeshRebuildInProgress;
     private Toggle _collisionEditToggle;
 
@@ -432,13 +447,21 @@ public class SceneEditorMainMenu : MonoBehaviour
 
     private void RefreshEditModeLabel()
     {
+        bool collisionEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsEditMode;
+        bool matEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsMatEditMode;
+
+        // Keep the buttons themselves in sync, not just their text. The two modes are mutually
+        // exclusive, and edit mode is now also entered from code (adding a portal or an object
+        // auto-selects it and turns the matching mode on), so the toggles would otherwise show a
+        // state the app is not in. SetIsOnWithoutNotify avoids re-entering ToggleEditMode here.
+        SyncEditModeToggle(PortalEditToggle, collisionEditEnabled);
+        SyncEditModeToggle(ObjectEditToggle, matEditEnabled);
+
         if (EditModeSubLabel == null)
         {
             return;
         }
 
-        bool collisionEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsEditMode;
-        bool matEditEnabled = EditModeManager.Instance != null && EditModeManager.Instance.IsMatEditMode;
         string collisionStatus = _isCollisionMeshRebuildInProgress
             ? "Collision edit: rebuilding..."
             : $"Collision edit: {(collisionEditEnabled ? "ON" : "OFF")}";
@@ -452,6 +475,15 @@ public class SceneEditorMainMenu : MonoBehaviour
         }
 
         EditModeSubLabel.text = $"{collisionStatus}\n{matStatus}";
+    }
+
+    // Optional: unassigned toggles simply keep their old click-driven visual state.
+    private static void SyncEditModeToggle(Toggle toggle, bool isOn)
+    {
+        if (toggle != null && toggle.isOn != isOn)
+        {
+            toggle.SetIsOnWithoutNotify(isOn);
+        }
     }
 
     private void RefreshMeshAlignmentLabel()
@@ -494,7 +526,10 @@ public class SceneEditorMainMenu : MonoBehaviour
     {
         RefreshEditModeLabel();
 
-        if (!EditModeManager.Instance.IsEditMode)
+        // Guarded so the mesh-carving workflow can be turned off entirely: with the flag off,
+        // adding/moving/deleting a portal box never triggers an OBB-cut request and the whole
+        // scene mesh is kept.
+        if (!EditModeManager.Instance.IsEditMode && rebuildMeshOnPortalChange)
         {
             RebuildBackgroundMeshFromAllCollisionBoxesAsync();
         }

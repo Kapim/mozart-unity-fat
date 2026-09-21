@@ -4,8 +4,10 @@ using Arcor2.ClientSdk.ClientServices.Managers;
 using Arcor2.ClientSdk.ClientServices.Models;
 using UnityEngine;
 
-public class CollisionObjectBinding : MonoBehaviour
+public class CollisionObjectBinding : MonoBehaviour, IObjectServerBinding
 {
+    public bool SupportsScale => true;
+
     public ActionObjectManager ActionObjectManager { get; private set; }
     public ObjectTypeManager ObjectTypeManager { get; private set; }
 

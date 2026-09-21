@@ -25,5 +25,13 @@ public class GrabbableMat : ActionObject
         }
 
         binding.Initialize(actionObject, origin);
+
+        // MATs are moved by the unified ObjectManipulator (grip + ray/trigger grab), not Meta SDK.
+        DisableMetaGrabBehaviours();
+
+        if (GetComponent<SelectionWireframe>() == null)
+        {
+            gameObject.AddComponent<SelectionWireframe>();
+        }
     }
 }

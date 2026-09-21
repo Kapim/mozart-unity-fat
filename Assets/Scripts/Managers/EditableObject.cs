@@ -109,6 +109,17 @@ public class EditableObject : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Stops this component from enabling/disabling any manipulation behaviours. Used by objects
+    /// that are driven entirely by the unified <see cref="ObjectManipulator"/> (e.g. MATs, whose
+    /// Meta SDK grab is turned off), so EditableObject never re-enables the old grab rig.
+    /// </summary>
+    public void DisableManipulationManagement()
+    {
+        autoDiscoverManipulationBehaviours = false;
+        manipulationBehaviours.Clear();
+    }
+
     public void SetRestrictManipulationToEditMode(bool restrict)
     {
         restrictManipulationToEditMode = restrict;
