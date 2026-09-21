@@ -28094,7 +28094,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_FirstSelected: {fileID: 0}
   m_sendNavigationEvents: 1
-  m_DragThreshold: 10
+  m_DragThreshold: 50
 --- !u!4 &1467121323
 Transform:
   m_ObjectHideFlags: 0
@@ -32556,6 +32556,10 @@ PrefabInstance:
     - target: {fileID: 6663531392753922760, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_Layer
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7978993776785057133, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
+      propertyPath: m_Maskable
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8365572260466434110, guid: 22f714964836a5c48b2be889b8d05f98, type: 3}
       propertyPath: m_AnchorMax.y
