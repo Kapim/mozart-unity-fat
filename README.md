@@ -1,3 +1,8 @@
+> [!IMPORTANT]
+> **This repository is archived.** Development continues at
+> **[robofit/mozart-unity-fat](https://github.com/robofit/mozart-unity-fat)**, which contains the full
+> history and all branches. Please clone, open issues and send pull requests there.
+
 # MOZART Feasibility Analysis Tool
 
 This application is part of the [MOZART project](https://mozart-robotics.eu/).
